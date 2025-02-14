@@ -80,10 +80,10 @@ resource "aws_route" "pc_api_public_route" {
   gateway_id = aws_internet_gateway.pc_api_ig.id
 }
 
-resource "aws_db_subnet_group" "pc_api_rds_sg" {
-  name = "pc-api-rds-db-sg"
-  subnet_ids = [aws_subnet.pc_api_private_subnet1.id, aws_subnet.pc_api_private_subnet2.id]
-}
+# resource "aws_db_subnet_group" "pc_api_rds_sg" {
+#   name = "pc-api-rds-db-sg"
+#   subnet_ids = [aws_subnet.pc_api_private_subnet1.id, aws_subnet.pc_api_private_subnet2.id]
+# }
 
 resource "aws_security_group" "web_server_sg" {
   #Vinculacao deste security group a VPC criada acima
@@ -124,44 +124,44 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 
-resource "aws_security_group" "rds_db_sg" {
-  name="pc-api-rds-db-sg"
-  vpc_id = aws_vpc.web_server_vpc.id
-}
+# resource "aws_security_group" "rds_db_sg" {
+#   name="pc-api-rds-db-sg"
+#   vpc_id = aws_vpc.web_server_vpc.id
+# }
 
-resource "aws_security_group" "rds_sg" {
-  name = "rds-sg"
-  vpc_id = aws_vpc.web_server_vpc.id
-  ingress {
-    from_port = 3306
-    to_port = 3306
-    protocol = "tcp"
-    security_groups = [aws_security_group.web_server_sg.id]
-  }
-}
+# resource "aws_security_group" "rds_sg" {
+#   name = "rds-sg"
+#   vpc_id = aws_vpc.web_server_vpc.id
+#   ingress {
+#     from_port = 3306
+#     to_port = 3306
+#     protocol = "tcp"
+#     security_groups = [aws_security_group.web_server_sg.id]
+#   }
+# }
 
-resource "aws_vpc_security_group_ingress_rule" "ec2_rds_sgir" {
-  security_group_id = aws_security_group.rds_db_sg.id
-  referenced_security_group_id = aws_security_group.web_server_sg.id
-  from_port= 3306
-  to_port=3306
-  ip_protocol="tcp"
-}
+# resource "aws_vpc_security_group_ingress_rule" "ec2_rds_sgir" {
+#   security_group_id = aws_security_group.rds_db_sg.id
+#   referenced_security_group_id = aws_security_group.web_server_sg.id
+#   from_port= 3306
+#   to_port=3306
+#   ip_protocol="tcp"
+# }
 
 #### Criacao do banco de dados RDS
-resource "aws_db_instance" "pc_db_01" {
-  instance_class = "db.t3.micro"
-  allocated_storage = 10
-  db_name = "price_compare_db"
-  engine = "mysql"
-  engine_version = "8.0"
-  username = "admin"
-  password = "p4ssw0rd"
-  parameter_group_name = "default.mysql8.0"
-  skip_final_snapshot = true
-  vpc_security_group_ids = [aws_security_group.rds_db_sg.id]
-  db_subnet_group_name = aws_db_subnet_group.pc_api_rds_sg.id
-}
+# resource "aws_db_instance" "pc_db_01" {
+#   instance_class = "db.t3.micro"
+#   allocated_storage = 10
+#   db_name = "price_compare_db"
+#   engine = "mysql"
+#   engine_version = "8.0"
+#   username = "admin"
+#   password = "p4ssw0rd"
+#   parameter_group_name = "default.mysql8.0"
+#   skip_final_snapshot = true
+#   vpc_security_group_ids = [aws_security_group.rds_db_sg.id]
+#   db_subnet_group_name = aws_db_subnet_group.pc_api_rds_sg.id
+# }
 
 resource "aws_instance" "web_server" {
   ami         = "ami-04b70fa74e45c3917" #imagem do ubuntu
@@ -170,7 +170,7 @@ resource "aws_instance" "web_server" {
   subnet_id = aws_subnet.pc_api_public_subnet.id
   associate_public_ip_address = true
   count = 1
-  depends_on = [aws_db_instance.pc_db_01]
+  # depends_on = [aws_db_instance.pc_db_01]
   user_data = <<EOF
 #!/bin/bash
 echo "Atualizando apt-get..."
@@ -191,18 +191,14 @@ IP_CUR_EC2=$(curl http://checkip.amazonaws.com)
 echo "IP publico da instancia"
 
 echo "Definindo variaveis de ambiente..."
-RDS_ENDPOINT="${aws_db_instance.pc_db_01.address}"
-export DBHOST=$RDS_ENDPOINT
-export DBPORT=3306
-export DBUSER="${aws_db_instance.pc_db_01.username}"
-export DBPASS="${aws_db_instance.pc_db_01.password}"
-export DBNAME="price_compare_db"
-echo $RDS_ENDPOINT
 
-echo "Criando tabela"
-export MYSQL_PWD="p4ssw0rd"
-echo "Criando banco de dados"
-mysql -h $RDS_ENDPOINT -u admin -e "use price_compare_db; GRANT ALL PRIVILEGES ON price_compare_db.* TO 'admin'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES; create table price_compare_db.users (id serial primary key, name text, email text, created_at timestamp default current_timestamp);"
+# export DBNAME="price_compare_db"
+# echo $RDS_ENDPOINT
+
+# echo "Criando tabela"
+# export MYSQL_PWD="p4ssw0rd"
+# echo "Criando banco de dados"
+# mysql -h $RDS_ENDPOINT -u admin -e "use price_compare_db; GRANT ALL PRIVILEGES ON price_compare_db.* TO 'admin'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES; create table price_compare_db.users (id serial primary key, name text, email text, created_at timestamp default current_timestamp);"
 
 echo "Criando configuracao NGINX..."
 echo "server {
