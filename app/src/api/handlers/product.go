@@ -126,3 +126,4 @@ func GetLastPricesFromStores(ProductID uuid.UUID, c echo.Context) error {
 
 	return c.JSON(http.StatusOK, prices)
 }
+
