@@ -11,8 +11,8 @@ type Product struct {
     ProductID      uuid.UUID `json:"product_id"`
     Name           string    `json:"name"`
     Description    string    `json:"description"`
-    CurrentPrice   float64   `json:"current_price"`
-    HistoricPrices []float64   `json:"historic_prices"`
+    CurrentPrice   string   `json:"current_price"`
+    HistoricPrices []string   `json:"historic_prices"`
     CreatedAt      time.Time `json:"created_at"`
     UpdatedAt      time.Time `json:"updated_at"`
 }
