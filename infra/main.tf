@@ -176,7 +176,7 @@ resource "aws_instance" "web_server" {
 echo "Atualizando apt-get..."
 sudo apt-get update
 echo "Instalamdp dependencias..."
-sudo apt-get install nginx python3 python3-pip git nginx python3-venv mysql-client -y
+sudo apt-get install nginx python3 python3-pip git nginx python3-venv -y
 sudo snap install aws-cli --classic
 
 echo "indo para pasta do usuario"
@@ -191,14 +191,6 @@ IP_CUR_EC2=$(curl http://checkip.amazonaws.com)
 echo "IP publico da instancia"
 
 echo "Definindo variaveis de ambiente..."
-
-# export DBNAME="price_compare_db"
-# echo $RDS_ENDPOINT
-
-# echo "Criando tabela"
-# export MYSQL_PWD="p4ssw0rd"
-# echo "Criando banco de dados"
-# mysql -h $RDS_ENDPOINT -u admin -e "use price_compare_db; GRANT ALL PRIVILEGES ON price_compare_db.* TO 'admin'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES; create table price_compare_db.users (id serial primary key, name text, email text, created_at timestamp default current_timestamp);"
 
 echo "Criando configuracao NGINX..."
 echo "server {
@@ -217,7 +209,7 @@ echo "Reiniciando nginx..."
 sudo systemctl restart nginx
 
 echo "Fazendo download do projeto..."
-git clone https://github.com/evertonmj/price-compare-api-v2.git
+git clone https://github.com/evertonmj/price-compare-api.git
 
 echo "Iniciando o servico..."
 cd /home/ubuntu/price-compare-api-v2/
