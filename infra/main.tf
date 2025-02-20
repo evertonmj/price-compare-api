@@ -1,3 +1,9 @@
+# Before running, install Terraform utils if you don't havem them
+
+# sudo yum install -y yum-utils shadow-utils
+# sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+# sudo yum -y install terraform
+
 // Define basic configurations
 terraform {
   required_providers {
