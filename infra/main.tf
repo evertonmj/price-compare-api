@@ -182,7 +182,6 @@ cd /home/ubuntu/price-compare-api/app/src
 echo "Compilando projeto..."
 sudo go mod init
 sudo go mod tidy
-sudo go env -w GOCACHE
 sudo go build -o price-app
 sudo chmod +x price-app
 
