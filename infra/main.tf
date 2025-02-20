@@ -180,13 +180,13 @@ export GOPATH=/home/ubuntu/price-compare-api/app/src
 cd /home/ubuntu/price-compare-api/app/src
 
 echo "Compilando projeto..."
-go mod init
-go mod tidy
-go env -w GOCACHE
-go build -o price-app
-chmod +x price-app
+sudo go mod init
+sudo go mod tidy
+sudo go env -w GOCACHE
+sudo go build -o price-app
+sudo chmod +x price-app
 
-nohup ./price-app &
+sudo nohup ./price-app &
 
 echo "Instalacao concluida!"
 EOF
