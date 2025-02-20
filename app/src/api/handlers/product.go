@@ -16,6 +16,17 @@ func HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, "I'm alive!")
 }
 
+func Readness(c echo.Context) error {
+	fmt.Printf("Testing database readness")
+	dbConnection := configs_db.NewConnection()
+	err := dbConnection.Ping(c.Request().Context()).Err()
+	if err != nil {
+		fmt.Println(err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, "Database running and I'm ready!")
+}
+
 func AddProduct(c echo.Context) error {
 	fmt.Printf("Adding product")
 	dbConnection := configs_db.NewConnection()
