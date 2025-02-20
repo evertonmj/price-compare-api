@@ -1,3 +1,4 @@
+// Define basic configurations
 terraform {
   required_providers {
     aws = {
@@ -9,14 +10,17 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
+// Configure the AWS provider
 provider "aws" {
   region = "us-east-1"
 }
 
+// Create a VPC
 resource "aws_vpc" "web_server_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
+// Create a public subnet
 resource "aws_subnet" "pc_api_public_subnet" {
   vpc_id = aws_vpc.web_server_vpc.id
   cidr_block = "10.0.1.0/24"
@@ -24,6 +28,7 @@ resource "aws_subnet" "pc_api_public_subnet" {
   map_public_ip_on_launch = true
 }
 
+// Create a private subnet 1
 resource "aws_subnet" "pc_api_private_subnet1" {
   vpc_id = aws_vpc.web_server_vpc.id
   cidr_block = "10.0.2.0/24"
@@ -31,6 +36,7 @@ resource "aws_subnet" "pc_api_private_subnet1" {
   availability_zone_id = "use1-az2"
 }
 
+// Create a private subnet 2
 resource "aws_subnet" "pc_api_private_subnet2" {
   vpc_id = aws_vpc.web_server_vpc.id
   cidr_block = "10.0.4.0/24"
@@ -38,6 +44,7 @@ resource "aws_subnet" "pc_api_private_subnet2" {
   availability_zone_id = "use1-az3"
 }
 
+// Create an Internet Gateway
 resource "aws_internet_gateway" "pc_api_ig" {
   vpc_id = aws_vpc.web_server_vpc.id
   tags = {
@@ -45,6 +52,7 @@ resource "aws_internet_gateway" "pc_api_ig" {
   }
 }
 
+// Create a public route table
 resource "aws_route_table" "pc_api_public_route_table" {
   vpc_id = aws_vpc.web_server_vpc.id
   tags = {
@@ -52,6 +60,7 @@ resource "aws_route_table" "pc_api_public_route_table" {
   }
 }
 
+// Create a private route table
 resource "aws_route_table" "pc_api_private_route_table" {
   vpc_id = aws_vpc.web_server_vpc.id
   tags = {
@@ -59,83 +68,88 @@ resource "aws_route_table" "pc_api_private_route_table" {
   }
 }
 
+// Associate public route table with public subnet
 resource "aws_route_table_association" "pc_api_public_rta" {
   route_table_id = aws_route_table.pc_api_public_route_table.id
   subnet_id = aws_subnet.pc_api_public_subnet.id
 }
 
+// Associate private route table with private subnet 1
 resource "aws_route_table_association" "pc_api_private_rta1" {
   route_table_id = aws_route_table.pc_api_private_route_table.id
   subnet_id = aws_subnet.pc_api_private_subnet1.id
 }
 
+// Associate private route table with private subnet 2
 resource "aws_route_table_association" "pc_api_private_rta2" {
   route_table_id = aws_route_table.pc_api_private_route_table.id
   subnet_id = aws_subnet.pc_api_private_subnet2.id
 }
 
+// Create a route in the public route table
 resource "aws_route" "pc_api_public_route" {
   route_table_id = aws_route_table.pc_api_public_route_table.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id = aws_internet_gateway.pc_api_ig.id
 }
 
+// Create a security group for the web server
 resource "aws_security_group" "web_server_sg" {
-  #Vinculacao deste security group a VPC criada acima
   vpc_id = aws_vpc.web_server_vpc.id
   name = "pc-api-web-server-sg"
 
-  #Liberacao para acesso SSH
+  // Allow SSH access
   ingress {
     protocol  = "tcp"
     from_port = 22
     to_port   = 22
-    cidr_blocks      = ["0.0.0.0/0"]
-
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  #Liberacao de acesso HTTP
+  // Allow HTTP access
   ingress {
     protocol  = "tcp"
     from_port = 80
     to_port   = 80
-    cidr_blocks      = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  #Liberacao de acesso HTTPS
+  // Allow HTTPS access
   ingress {
     protocol  = "tcp"
     from_port = 443
     to_port   = 443
-    cidr_blocks      = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  #regra de saida
+  // Allow all outbound traffic
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
+// Create an EC2 instance for the web server
 resource "aws_instance" "web_server" {
-  ami         = "ami-04b70fa74e45c3917" #imagem do ubuntu
-  instance_type    = "t2.micro" #tipo da instancia
-  security_groups = [aws_security_group.web_server_sg.id] #vinculacao ao security group criado acima
+  ami         = "ami-04b70fa74e45c3917" // Ubuntu image
+  instance_type    = "t2.micro" // Instance type
+  security_groups = [aws_security_group.web_server_sg.id] // Associate with security group
   subnet_id = aws_subnet.pc_api_public_subnet.id
   associate_public_ip_address = true
   count = 1
-  # depends_on = [aws_db_instance.pc_db_01]
+
+  // User data script to configure the instance
   user_data = <<EOF
 #!/bin/bash
 echo "Atualizando apt-get..."
 sudo apt-get update
-echo "Instalamdp dependencias..."
+echo "Instalando dependencias..."
 sudo apt-get install nginx git nginx golang redis-server -y
 sudo snap install aws-cli --classic
 
-echo "indo para pasta do usuario"
+echo "Indo para pasta do usuario"
 cd /home/ubuntu
 
 IP_CUR_EC2=$(curl http://checkip.amazonaws.com)
@@ -156,6 +170,7 @@ nohup ./price-app &
 
 echo "Instalacao concluida!"
 EOF
+
   tags = {
     Name = "Ever Instance Test"
   }
