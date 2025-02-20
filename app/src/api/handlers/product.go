@@ -91,6 +91,19 @@ func GetProduct(c echo.Context) error {
 	return c.JSON(http.StatusOK, product)
 }
 
+func GetAllProducts(c echo.Context) error {
+	dbConnection := configs_db.NewConnection()
+
+	products, err := dbConnection.Get(c.Request().Context(), "products:").Result()
+
+	if err != nil {
+		fmt.Println(err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, products)
+}
+
 
 func DeleteProductById(c echo.Context) error {
 	dbConnection := configs_db.NewConnection()
