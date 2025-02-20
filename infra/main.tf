@@ -164,6 +164,7 @@ sudo apt-get install nginx git golang redis-server -y
 sudo snap install aws-cli --classic
 
 echo "Indo para pasta do usuario"
+sudo chmod -R 777 /home/ubuntu
 cd /home/ubuntu
 
 IP_CUR_EC2=$(curl http://checkip.amazonaws.com)
@@ -174,9 +175,13 @@ echo "Fazendo download do projeto..."
 git clone https://github.com/evertonmj/price-compare-api.git
 
 echo "Iniciando o servico..."
+
+export GOPATH=/home/ubuntu/price-compare-api/app/src
 cd /home/ubuntu/price-compare-api/app/src
 
 echo "Compilando projeto..."
+go mod init
+go mod tidy
 go build -o price-app
 chmod +x price-app
 
