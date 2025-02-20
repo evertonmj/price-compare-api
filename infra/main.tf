@@ -128,6 +128,14 @@ resource "aws_security_group" "web_server_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  // Allow access to service
+  ingress {
+    protocol  = "tcp"
+    from_port = 1323
+    to_port   = 1323
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   // Allow all outbound traffic
   egress {
     from_port   = 0
@@ -152,7 +160,7 @@ resource "aws_instance" "web_server" {
 echo "Atualizando apt-get..."
 sudo apt-get update
 echo "Instalando dependencias..."
-sudo apt-get install nginx git nginx golang redis-server -y
+sudo apt-get install nginx git golang redis-server -y
 sudo snap install aws-cli --classic
 
 echo "Indo para pasta do usuario"
