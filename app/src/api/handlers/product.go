@@ -16,7 +16,7 @@ func HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, "I'm alive!")
 }
 
-func Readness(c echo.Context) error {
+func Readiness(c echo.Context) error {
 	fmt.Printf("Testing database readness")
 	dbConnection := configs_db.NewConnection()
 	err := dbConnection.Ping(c.Request().Context()).Err()

@@ -13,4 +13,5 @@ func DefineRoutes(e *echo.Echo) {
     e.PUT("/products/:id", handlers.UpdateProductByID)
     e.DELETE("/products/:id", handlers.DeleteProductById)
     e.GET("/liveness", handlers.HealthCheck)
+    e.GET("/readiness", handlers.Readiness)
 }
