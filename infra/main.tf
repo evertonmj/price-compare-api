@@ -80,11 +80,6 @@ resource "aws_route" "pc_api_public_route" {
   gateway_id = aws_internet_gateway.pc_api_ig.id
 }
 
-# resource "aws_db_subnet_group" "pc_api_rds_sg" {
-#   name = "pc-api-rds-db-sg"
-#   subnet_ids = [aws_subnet.pc_api_private_subnet1.id, aws_subnet.pc_api_private_subnet2.id]
-# }
-
 resource "aws_security_group" "web_server_sg" {
   #Vinculacao deste security group a VPC criada acima
   vpc_id = aws_vpc.web_server_vpc.id
@@ -124,45 +119,6 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 
-# resource "aws_security_group" "rds_db_sg" {
-#   name="pc-api-rds-db-sg"
-#   vpc_id = aws_vpc.web_server_vpc.id
-# }
-
-# resource "aws_security_group" "rds_sg" {
-#   name = "rds-sg"
-#   vpc_id = aws_vpc.web_server_vpc.id
-#   ingress {
-#     from_port = 3306
-#     to_port = 3306
-#     protocol = "tcp"
-#     security_groups = [aws_security_group.web_server_sg.id]
-#   }
-# }
-
-# resource "aws_vpc_security_group_ingress_rule" "ec2_rds_sgir" {
-#   security_group_id = aws_security_group.rds_db_sg.id
-#   referenced_security_group_id = aws_security_group.web_server_sg.id
-#   from_port= 3306
-#   to_port=3306
-#   ip_protocol="tcp"
-# }
-
-#### Criacao do banco de dados RDS
-# resource "aws_db_instance" "pc_db_01" {
-#   instance_class = "db.t3.micro"
-#   allocated_storage = 10
-#   db_name = "price_compare_db"
-#   engine = "mysql"
-#   engine_version = "8.0"
-#   username = "admin"
-#   password = "p4ssw0rd"
-#   parameter_group_name = "default.mysql8.0"
-#   skip_final_snapshot = true
-#   vpc_security_group_ids = [aws_security_group.rds_db_sg.id]
-#   db_subnet_group_name = aws_db_subnet_group.pc_api_rds_sg.id
-# }
-
 resource "aws_instance" "web_server" {
   ami         = "ami-04b70fa74e45c3917" #imagem do ubuntu
   instance_type    = "t2.micro" #tipo da instancia
@@ -176,44 +132,28 @@ resource "aws_instance" "web_server" {
 echo "Atualizando apt-get..."
 sudo apt-get update
 echo "Instalamdp dependencias..."
-sudo apt-get install nginx python3 python3-pip git nginx python3-venv -y
+sudo apt-get install nginx git nginx golang redis-server -y
 sudo snap install aws-cli --classic
 
 echo "indo para pasta do usuario"
 cd /home/ubuntu
-echo "Criando ambiente Python..."
-sudo python3 -m venv /home/ubuntu/web_server
-source /home/ubuntu/web_server/bin/activate
-echo "Instalando dependencias python..."
-sudo /home/ubuntu/web_server/bin/pip install flask flask_restful jsonify sqlalchemy pymysql mysql.connector
 
 IP_CUR_EC2=$(curl http://checkip.amazonaws.com)
 echo "IP publico da instancia"
-
-echo "Definindo variaveis de ambiente..."
-
-echo "Criando configuracao NGINX..."
-echo "server {
-listen 80;
-listen [::]:80;
-server_name $(echo $IP_CUR_EC2);
-
-location / {
-proxy_pass http://127.0.0.1:5000;
-include proxy_params;
-}
-}" | sudo tee /etc/nginx/sites-enabled/pc-site
-
-#restart nginx
-echo "Reiniciando nginx..."
-sudo systemctl restart nginx
+echo $IP_CUR_EC2
 
 echo "Fazendo download do projeto..."
 git clone https://github.com/evertonmj/price-compare-api.git
 
 echo "Iniciando o servico..."
-cd /home/ubuntu/price-compare-api-v2/
-python3 index.py &
+cd /home/ubuntu/price-compare-api/app/src
+
+echo "Compilando projeto..."
+go build -o price-app
+chmod +x price-app
+
+nohup ./price-app &
+
 echo "Instalacao concluida!"
 EOF
   tags = {

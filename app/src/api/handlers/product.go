@@ -12,6 +12,10 @@ import (
 	"price-compare-v3/models"
 )
 
+func HealthCheck(c echo.Context) error {
+	return c.JSON(http.StatusOK, "I'm alive!")
+}
+
 func AddProduct(c echo.Context) error {
 	fmt.Printf("Adding product")
 	dbConnection := configs_db.NewConnection()
